@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+####################################################################
+# Usage example:
+# python taylor_panel.py -j /work/gleckler1/processed_data/cmip5clims_metrics_package-amip/cmec_11022017/pr_2.5x2.5_regrid2_regrid2_metrics.json -s all -e amip -d global -o test
+####################################################################
+
 import numpy as NP
 import matplotlib.pyplot as PLT
 import json
@@ -10,7 +15,6 @@ import argparse
 from argparse import RawTextHelpFormatter
 import sys
 import string
-
 
 P = argparse.ArgumentParser(
     description='Runs PCMDI Metrics Computations',
@@ -54,24 +58,20 @@ exp = args.exp
 season = args.season
 pathout = args.outpath 
 
-#w = sys.stdin.readline()
-
-test = False  #True
-
-
-print json_path,' ',season,' ', pathout,' ', exp,' ', var , ' ', dom
-print 'after args'
+#print json_path,' ',season,' ', pathout,' ', exp,' ', var , ' ', dom
+#print 'after args'
 
 fj = open(json_path)
 dd = json.loads(fj.read())
 fj.close()
 
-if var == 'pr':
-    unit_adj = 28.
-else:
-    unit_adj = 1.
+var = dd['Variable']['id']
+#print var
 
 mods = dd['RESULTS'].keys()
+#print mods
+
+print exp, var, json_path
 
 seasons = [season]
 if season == 'all':
@@ -92,21 +92,19 @@ source_ref = dd['RESULTS'][mods[0]]["defaultReference"]['source']
 
 for season in seasons:
     # Reference std from obs
-#   stdrefs[season] = float(dd['RESULTS'][mods[0]]["defaultReference"]['r1i1p1']['global']['std-obs_xy_'+season+'_'+dom])*unit_adj
-    stdrefs[season] = float(dd['RESULTS'][mods[0]]["defaultReference"]['r1i1p1']['global']['std-obs_xy_'+season])*unit_adj
+    stdrefs[season] = float(dd['RESULTS'][mods[0]]["defaultReference"]['r1i1p1'][dom]['std-obs_xy'][season])
 
     samples = {}
     all_mods = []
     for mod in mods:
-        cor = float(dd['RESULTS'][mod]["defaultReference"]['r1i1p1']['global']['cor_xy_'+season])
-        std = float(dd['RESULTS'][mod]["defaultReference"]['r1i1p1']['global']['std_xy_'+season])*unit_adj
+        cor = float(dd['RESULTS'][mod]["defaultReference"]['r1i1p1'][dom]['cor_xy'][season])
+        std = float(dd['RESULTS'][mod]["defaultReference"]['r1i1p1'][dom]['std_xy'][season])
         all_mods.append([std,cor,str(mod)])
     samples[season] = all_mods
 
     colors = PLT.matplotlib.cm.Set1(NP.linspace(0,1,len(samples[season])))
 
     dia = TaylorDiagram(stdrefs[season], fig=fig, rect=rects[season],
-                        #label='Reference')
                         label=source_ref)
 
     # Add samples to Taylor diagram
@@ -114,7 +112,7 @@ for season in seasons:
         dia.add_sample(stddev, corrcoef,
                        marker='$%d$' % (i+1), ms=10, ls='',
                        #mfc='k', mec='k', # B&W
-                       mfc=colors[i], mec=colors[i], # Colors
+                       #mfc=colors[i], mec=colors[i], # Colors
                        label=name)
 
     # Add RMS contours, and label them
@@ -133,7 +131,3 @@ fig.legend(dia.samplePoints,
            numpoints=1, prop=dict(size='small'), loc='right')
 
 PLT.savefig(pathout + '/' + fig_filename + '.png')
-
-if test:
-    PLT.ion()
-    PLT.show()
