@@ -3,6 +3,7 @@
 import numpy as np
 import xarray as xr
 import cdms2 
+import cdtime
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 from pcmdi_metrics.pcmdi.pmp_parser import PMPParser
@@ -89,33 +90,57 @@ print('diri is ', diri)
 
 years=[]
 for year in range(1998,2011+1):
-    years.append(str(year))
-    
+#   years.append(str(year))
+    years.append(year)
 ny=len(years)
-file=diri+"3B42v7.1DD."+years[0]+".nc"
-file= diri+ "CMORPH_V1.0.1DD." + years[0] + ".nc"
 
-ds = xr.open_dataset(file)
-cfy = np.full((ny,ds.lon.size,ds.lat.size),np.nan)
+#file=diri+"3B42v7.1DD."+years[0]+".nc"
+#file= diri+ "CMORPH_V1.0.1DD." + years[0] + ".nc"
+file = diri
 
-for year in range(ny):
-    print(years[year])
-    file=diri+"3B42v7.1DD."+years[year]+".nc"
-    file= diri+ "CMORPH_V1.0.1DD." + years[year] + ".nc"
+#ds = xr.open_dataset(file)
 
-    ds = xr.open_dataset(file)
-    thisyear=ds.rain
-    thisyearnp=np.array(thisyear.transpose('time','lon','lat'))
-    ndhy=oneyear(thisyearnp)
-    cfy[year,:,:]=ndhy    
+fs = cdms2.open(file)
+ds = fs['pr']
+lats = ds.getLatitude()
+lons = ds.getLongitude()
+print(ds.shape,ds.shape[1])
+
+#cfy = np.full((ny,ds.lon.size,ds.lat.size),np.nan)
+cfy = np.full((ny,ds.shape[1],ds.shape[2]),np.nan)
+
+print('cfy.shape ', cfy.shape)
+
+for ny, year in enumerate(years):  # range(ny):
+    print(year)
+#   file=diri+"3B42v7.1DD."+years[year]+".nc"
+#   file= diri+ "CMORPH_V1.0.1DD." + years[year] + ".nc"
+#   ds = xr.open_dataset(file)
+#   thisyear=ds.rain
+
+#   ds = fs('pr',time=(cdtime.comptime(year),(cdtime.comptime(year+1))))
+    thisyear = fs('pr',time=(cdtime.comptime(year,1,1),(cdtime.comptime(year+1,1,1))))
+    print(thisyear.shape)
+
+    thisyear = thisyear.filled()  #np.array(thisyear)
+#   thisyear=np.array(thisyear.transpose('time','lon','lat'))
+    ndhy=oneyear(thisyear)
+    cfy[ny,:,:]=ndhy    
 
 ndm=np.nanmedian(cfy,axis=0) # ignore years with zero precip
 #missingthresh = 0.3 # threshold of missing data fraction at which a location is thrown out 
 missingfrac = (np.sum(np.isnan(cfy),axis=0)/ny)
 ndm[np.where(missingfrac > missingthresh)] = np.nan
 
-ndmda = xr.DataArray(ndm, dims=['lon','lat'], coords={'lon': ds.lon,'lat' : ds.lat})
-ndmda.to_netcdf('nday_trmm.nc')
+#ndmda = xr.DataArray(ndm, dims=['lon','lat'], coords={'lon': ds.lon,'lat' : ds.lat})
+#ndmda.to_netcdf('nday_trmm.nc')
+
+ndmda = cdms2.createVariable(ndm,id='pr')
+ndmda.setAxis(0,lats)
+ndmda.setAxis(1,lons)
+g = cdms2.open('crap.nc',"w+")
+g.write(ndmda)
+g.close()
 
 #plt.imshow(ndm)
 plt.imshow(np.flipud(ndm.transpose()))
