@@ -40,11 +40,26 @@ P.add_argument("--mod_name",
                default=None,
                help="path+file")
 
+P.add_argument("--start_year",
+               type=str,
+               dest='start_year',
+               default=None,
+               help="Start year")
+
+P.add_argument("--end_year",
+               type=str,
+               dest='end_year',
+               default=None,
+               help="End year")
+
 args = P.get_parameter()
 exp = args.exp
 rn = args.realization
 mod = args.mod_name
 modpath = args.modpath
+syr = int(args.start_year)
+eyr = int(args.end_year)
+results_dir = args.results_dir
 
 missingthresh = 0.3 # threshold of missing data fraction at which a year is thrown out 
 
@@ -89,7 +104,7 @@ diri = modpath
 print('diri is ', diri)
 
 years=[]
-for year in range(1998,2011+1):
+for year in range(syr,eyr+1):
 #   years.append(str(year))
     years.append(year)
 ny=len(years)
@@ -138,14 +153,15 @@ ndm[np.where(missingfrac > missingthresh)] = np.nan
 ndmda = cdms2.createVariable(ndm,id='pr')
 ndmda.setAxis(0,lats)
 ndmda.setAxis(1,lons)
-g = cdms2.open('crap.nc',"w+")
+pathout = results_dir +  '/pr_unevenness_' + mod + '_' + str(syr) + '-' + str(eyr) + '.nc' 
+g = cdms2.open(pathout,"w+")
 g.write(ndmda)
 g.close()
 
 #plt.imshow(ndm)
-plt.imshow(np.flipud(ndm.transpose()))
+#plt.imshow(np.flipud(ndm.transpose()))
 plt.colorbar()
 
-filename="unevendays_trmm.pdf"
+filename="unevenness_" + mod + ".pdf"
 plt.savefig(filename)
 plt.close()

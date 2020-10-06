@@ -18,11 +18,16 @@ modpath = '/p/user_pub/PCMDIobs/PCMDIobs2/atmos/day/pr/GPCP-1-3/gn/v20200924/pr_
 
 modpath = '/p/user_pub/pmp/pmp_results/pmp_v1.1.2/additional_xmls/latest/v20200919/cmip6/historical/atmos/day/pr/cmip6.historical.GFDL-CM4.r1i1p1f1.day.pr.xml'
 
+start_year = '1988'
+end_year = '2011'
+
 #results_dir = '/p/user_pub/pmp/pmp_results/pmp_v1.1.2/diagnostic_results/daily_extremes/cmip6/' + exp
+
+results_dir = '/p/user_pub/pmp/pmp_results/pmp_v1.1.2/diagnostic_results/pr/unevenness/' + mip + '/' + exp + '/'
 
 try:
  os.mkdir(results_dir + '/' + ver) 
 except:
  pass
 
-results_dir = '/p/user_pub/pmp/pmp_results/pmp_v1.1.2/diagnostic_results/pr/unevenness/obs/' + exp + '/' + ver 
+results_dir = '/p/user_pub/pmp/pmp_results/pmp_v1.1.2/diagnostic_results/pr/unevenness/' + mip + '/' + exp + '/' + ver 
