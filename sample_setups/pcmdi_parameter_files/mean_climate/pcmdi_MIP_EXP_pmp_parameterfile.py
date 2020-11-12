@@ -32,8 +32,6 @@ if MIP == 'cmip5':
 
 # LIST OF MODEL VERSIONS TO BE TESTED - WHICH ARE EXPECTED TO BE PART OF CLIMATOLOGY FILENAME
 
-#all_mods_dic= json.load(open('all_mip_mods-tmp.json'))
-#all_mods_dic= json.load(open('all_mip_mods-v20200427.json'))
 all_mods_dic= json.load(open('all_mip_mods-v20200528.json'))
 
 
@@ -49,8 +47,6 @@ print(len(test_data_set),' ',test_data_set)
 
 print('----------------------------------------------------------------')
 
-
-#jjjjtest_data_set = test_data_set[0:2]
 
 simulation_description_mapping = {"creation_date" : "creation_date","tracking_id":'tracking_id',}
 
