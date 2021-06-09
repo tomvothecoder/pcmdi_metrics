@@ -5,7 +5,7 @@ var = "pr"
 frq = "day"
 modpath = 'demo_data_standard/CMIP5_demo_timeseries/historical/atmos/day/pr/pr_day_GISS-E2-H_historical_r6i1p1_20000101-20051231.nc'
 outdir = 'demo_output/precip_variability'
-prd = [2000,2005]  # analysis period
+prd = [2000,2001]  # analysis period
 fac = 86400  # factor to make unit of [mm/day]
 
 # length of segment in power spectra (~10 years)
