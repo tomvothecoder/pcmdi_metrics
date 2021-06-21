@@ -3,8 +3,8 @@ exp = "historical"
 mod = "GISS-E2-H"
 var = "pr"
 frq = "day"
-modpath = 'demo_data_standard/CMIP5_demo_precip_var'
-outdir = 'demo_output/precip_variability'
+modpath = 'demo_data_standard/CMIP5_demo_precip_var/'
+outdir = 'demo_output/precip_variability/'
 prd = [2000,2001]  # analysis period
 fac = 86400  # factor to make unit of [mm/day]
 
