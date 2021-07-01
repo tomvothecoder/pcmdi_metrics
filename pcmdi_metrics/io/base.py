@@ -253,14 +253,17 @@ class Base(cdp.cdp_io.CDPIO, genutil.StringConstructor):
         cmec_data["DIMENSIONS"]["json_structure"] = data["json_structure"]
 
         # recursively process json
-        def recursive_replace(json_dict, extra_fields):
+        def recursive_replace(json_dict, extra_fields, json_structure, level=0):
             new_dict = json_dict.copy()
             # replace blank keys with unspecified
             if "" in new_dict:
                 new_dict["Unspecified"] = new_dict.pop("")
-
+            dim_name = json_structure[level]
+            dims_dict = {json_structure[level]: set()}
             for key in new_dict:
                 if key != "attributes":
+                    # Add key to dimensions list
+                    dims_dict[dim_name].update({key})
                     if isinstance(new_dict[key], dict):
                         # move extra fields into attributes key
                         atts = {}
@@ -270,12 +273,20 @@ class Base(cdp.cdp_io.CDPIO, genutil.StringConstructor):
                         if atts:
                             new_dict[key]["attributes"] = atts
                         # process sub-dictionary
-                        tmp_dict = recursive_replace(new_dict[key], extra_fields)
+                        tmp_dict, tmp_dims_dict = recursive_replace(new_dict[key], extra_fields, json_structure, level=level+1)
                         new_dict[key] = tmp_dict
+                        # update dims dictionary with sub-key info
+                        for n_key in tmp_dims_dict:
+                            if n_key not in dims_dict:
+                                dims_dict[n_key] = set()
+                            if isinstance(tmp_dims_dict[n_key],set):
+                                dims_dict[n_key] = dims_dict[n_key].union(tmp_dims_dict[n_key])
+                            else:
+                                dims_dict[n_key].update({tmp_dims_dict[n_key]})
                     # convert string metrics to float
                     if (isinstance(new_dict[key], str)):
                         new_dict[key] = float(new_dict[key])
-            return new_dict
+            return new_dict, dims_dict
 
         extra_fields = [
                         "source",
@@ -293,30 +304,10 @@ class Base(cdp.cdp_io.CDPIO, genutil.StringConstructor):
                         "target_model_eofs",
                         "analysis_time_window_end_year",
                         "analysis_time_window_start_year"]
-        # clean up formatting in RESULTS section
-        cmec_data["RESULTS"] = recursive_replace(data["RESULTS"], extra_fields)
-
-        # Populate dimensions fields
-        def get_dimensions(json_dict, json_structure):
-            keylist = {}
-            level = 0
-            while level < len(json_structure):
-                if isinstance(json_dict, dict):
-                    first_key = list(json_dict.items())[0][0]
-                    # skip over attributes key when building dimensions
-                    if first_key == "attributes":
-                        first_key = list(json_dict.items())[1][0]
-                    dim = json_structure[level]
-                    if dim == "statistic":
-                        keys = [key for key in json_dict]
-                        keylist[dim] = {"indices": keys}
-                    else:
-                        keys = {key: {} for key in json_dict if key != "attributes"}
-                        keylist[dim] = keys
-                    json_dict = json_dict[first_key]
-                level += 1
-            return keylist
-        dimensions = get_dimensions(cmec_data["RESULTS"].copy(), data["json_structure"])
+        # clean up formatting in RESULTS section and get all dimensions keys
+        cmec_data["RESULTS"], dimensions = recursive_replace(data["RESULTS"], extra_fields, data["json_structure"])
+        for key in dimensions:
+            dimensions[key] = dict.fromkeys(dimensions[key],{})
         cmec_data["DIMENSIONS"]["dimensions"] = dimensions
 
         cmec_file_name = file_name.replace(".json", "_cmec.json")
