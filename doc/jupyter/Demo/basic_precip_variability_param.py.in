@@ -4,7 +4,7 @@ mod = "GISS-E2-H"
 var = "pr"
 frq = "day"
 modpath = 'demo_data_standard/CMIP5_demo_timeseries/historical/atmos/day/pr/pr_day_GISS-E2-H_historical_r6i1p1_20000101-20051231.nc'
-results_dir = 'demo_output/precip_variability'
+results_dir = 'demo_output/precip_variability/GISS-E2-H/'
 prd = [2000,2005]  # analysis period
 fac = 86400  # factor to make unit of [mm/day]
 
