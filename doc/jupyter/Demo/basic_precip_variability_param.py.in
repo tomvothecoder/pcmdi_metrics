@@ -14,3 +14,6 @@ nperseg = 2 * 365
 # length of overlap between segments in power spectra (~5 years)
 # shortened to 1 year for demo purposes
 noverlap = 1 * 365
+
+# flag for cmec formatted JSON
+cmec = False
